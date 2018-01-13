@@ -1,4 +1,28 @@
 <resources>
     <string name="app_name">PositionGetter</string>
     <string name="title_activity_maps">Map</string>
+
+    <string name="user_name">User Name</string>
+    <string name="user_pass">User Pass</string>
+    <string name="config_pass">Confirm User Pass</string>
+    <string name="user_alias">User Alias</string>
+
+    <string name="action_confirm">Confirm</string>
+    <string name="action_login">Login/Register</string>
+    <string name="action_settings">Settings</string>
+    <string name="setting_get_pos">Allow others to get position</string>
+    <string name="title_activity_login">Sign in / Sign up</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
 </resources>

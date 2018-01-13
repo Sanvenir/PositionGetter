@@ -19,7 +19,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -87,6 +89,18 @@ public class LocationService extends Service {
 
     }
 
+    public static String bindParams(Map<String, String> paramMap){
+        StringBuilder builder = new StringBuilder();
+        builder.append("?");
+        for(String key : paramMap.keySet()) {
+            builder.append(key);
+            builder.append("=");
+            builder.append(paramMap.get(key));
+            builder.append("&");
+        }
+        return builder.toString();
+    }
+
     public void startTimer() {
         if(mTimer == null) {
             mTimer = new Timer();
@@ -94,6 +108,8 @@ public class LocationService extends Service {
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
+                if(HttpMethod.userID == -1)
+                    return;
                 Log.d("Timer Thread", "========================>Running");
                 if(ActivityCompat.checkSelfPermission(LocationService.this, Manifest.permission.ACCESS_FINE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
@@ -101,7 +117,18 @@ public class LocationService extends Service {
                 }
                 Location location = locationManager.getLastKnownLocation(locationProvider);
                 if(location != null) {
-                    showLocation(location);
+                    try {
+                        Map<String, String> paramMap = new HashMap<>();
+                        paramMap.put("method", "upload");
+                        paramMap.put("uid", String.valueOf(HttpMethod.userID));
+                        paramMap.put("la", String.valueOf(location.getLatitude()));
+                        paramMap.put("lo", String.valueOf(location.getLongitude()));
+                        paramMap.put("el", String.valueOf(location.getAltitude()));
+                        String response = HttpMethod.postMethod(paramMap);
+                        Log.d("Response", response);
+                    } catch(Exception e) {
+                        Log.d(TAG, e.toString());
+                    }
                 }
             }
         }, 1000, 5000);

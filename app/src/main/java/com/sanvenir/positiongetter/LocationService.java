@@ -108,19 +108,18 @@ public class LocationService extends Service {
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if(HttpMethod.userID == -1)
-                    return;
                 Log.d("Timer Thread", "========================>Running");
                 if(ActivityCompat.checkSelfPermission(LocationService.this, Manifest.permission.ACCESS_FINE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
+                    Log.d("Timer Thread", "no permission");
                     return;
                 }
                 Location location = locationManager.getLastKnownLocation(locationProvider);
+                Log.d("Timer Thread", String.valueOf(location));
                 if(location != null) {
                     try {
                         Map<String, String> paramMap = new HashMap<>();
                         paramMap.put("method", "upload");
-                        paramMap.put("uid", String.valueOf(HttpMethod.userID));
                         paramMap.put("la", String.valueOf(location.getLatitude()));
                         paramMap.put("lo", String.valueOf(location.getLongitude()));
                         paramMap.put("el", String.valueOf(location.getAltitude()));

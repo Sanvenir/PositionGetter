@@ -5,6 +5,8 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.CookieHandler;
+import java.net.CookieManager;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -15,13 +17,18 @@ import java.util.Map;
  */
 
 public class HttpMethod {
-    public static int userID = -1;
+
+    protected static CookieManager cookieManager = new CookieManager();
+    static
+    {
+        CookieHandler.setDefault(cookieManager);
+    }
+
     public static boolean getPos = false;
     public static String setGetPos(Boolean getPos) throws IOException {
         HttpMethod.getPos = getPos;
         Map<String, String> paramMap = new HashMap<>();
         paramMap.put("method", "setgetpos");
-        paramMap.put("uid", String.valueOf(userID));
         paramMap.put("getpos", getPos.toString());
         return postMethod(paramMap);
     }
@@ -38,7 +45,7 @@ public class HttpMethod {
         return builder.toString();
     }
     public static String postMethod(Map<String, String> paramMap) throws IOException {
-        String baseURL = "http://10.202.54.178:8080/PositionChecker/info";
+        String baseURL = "http://104.238.181.152:8080/posget/info";
         URL url = new URL(baseURL + bindParams(paramMap));
         HttpURLConnection conn = (HttpURLConnection)url.openConnection();
         conn.setRequestMethod("POST");

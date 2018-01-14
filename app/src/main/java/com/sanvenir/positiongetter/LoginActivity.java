@@ -317,15 +317,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     Looper.prepare();
                     Toast.makeText(getApplicationContext(), "Failed to login", Toast.LENGTH_LONG).show();
                     return false;
-                } else {
-                    HttpMethod.userID = Integer.parseInt(response);
-                    SharedPreferences sp = getSharedPreferences("SI", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putInt("UserID", HttpMethod.userID);
-                    editor.apply();
-                    Log.d("=======>UserID", "=========" + sp.getInt("UserID", -1));
-                    return true;
                 }
+                return true;
             } catch(Exception e) {
                 Log.d("Login Activity", e.toString());
                 return false;

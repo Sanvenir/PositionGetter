@@ -47,7 +47,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         SharedPreferences sp = getSharedPreferences("SI", MODE_PRIVATE);
-        HttpMethod.userID = sp.getInt("UserID", -1);
         HttpMethod.getPos = sp.getBoolean("GetPos", false);
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);

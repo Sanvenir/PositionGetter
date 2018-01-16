@@ -15,17 +15,28 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ListPopupWindow;
 import android.widget.Switch;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private static final String TAG = MapsActivity.class.getSimpleName();
@@ -35,6 +46,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private static final int REQ_ACCESS_FINE_LOCATION = 101;
+
+    SearchView searchView;
+    ListPopupWindow listPopupWindow;
+    Toolbar toolbar;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -49,7 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SharedPreferences sp = getSharedPreferences("SI", MODE_PRIVATE);
         HttpMethod.getPos = sp.getBoolean("GetPos", false);
 
-        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.main);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -66,7 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        Switch sw = (Switch)findViewById(R.id.switchGetPos);
+        Switch sw = findViewById(R.id.switchGetPos);
         sw.setChecked(HttpMethod.getPos);
         sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -76,6 +91,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        Button buttonSetGroup = findViewById(R.id.buttonSetGroup);
+        final EditText textSetGroup = findViewById(R.id.textSetGroup);
+        buttonSetGroup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SetGroupAsyncTask task = new SetGroupAsyncTask(textSetGroup.getText().toString());
+                task.execute();
+            }
+        });
 
         while(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -114,6 +138,67 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
+    class SetGroupAsyncTask extends AsyncTask<Void, Void, Boolean>{
+        String group = null;
+        public SetGroupAsyncTask(String g) {
+            group = g;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            try {
+                UserData.setTrackingUser(null);
+                String response = HttpMethod.setGroup(group);
+                if(response.equals("success")) {
+                    String[] userInfo = HttpMethod.getPos();
+                    UserData.setAllUserData(userInfo);
+                    return true;
+                }
+                return false;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            if(aBoolean) {
+                Toast.makeText(getApplicationContext(), "Setting success", Toast.LENGTH_SHORT).show();
+                listPopupWindow = new ListPopupWindow(MapsActivity.this);
+                listPopupWindow.setAnchorView(toolbar);
+
+                listPopupWindow.setAdapter(new ArrayAdapter<>(
+                        MapsActivity.this,
+                        android.R.layout.simple_list_item_1,
+                        new ArrayList<>(UserData.allUserData.keySet())
+                ));
+
+                listPopupWindow.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        UserData.setTrackingUser(adapterView.getItemAtPosition(i).toString());
+                        Log.d("Tracking user:========>", UserData.getTrackingUser());
+                        listPopupWindow.dismiss();
+                        UserData trackUser = UserData.allUserData.get(UserData.getTrackingUser());
+                        LatLng trackingUser = new LatLng(trackUser.getLatitude(), trackUser.getLongitude());
+                        mMap.addMarker(new MarkerOptions().position(trackingUser));
+                    }
+                });
+                listPopupWindow.show();
+            } else {
+                Toast.makeText(getApplicationContext(), "Setting fail", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
     class SetGetPosAsyncTask extends AsyncTask<Void, Void, Boolean> {
         boolean isGetPos = false;
         public SetGetPosAsyncTask(boolean b) {

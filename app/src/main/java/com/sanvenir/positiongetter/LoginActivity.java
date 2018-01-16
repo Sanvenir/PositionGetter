@@ -6,7 +6,6 @@ import android.annotation.TargetApi;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.CursorLoader;
 import android.content.Loader;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -313,6 +312,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 paramMap.put("upass", mPassword);
                 paramMap.put("ualias", mAlias);
                 String response = HttpMethod.postMethod(paramMap);
+                Log.d("Http Response", response);
                 if(response.equals("fail")) {
                     Looper.prepare();
                     Toast.makeText(getApplicationContext(), "Failed to login", Toast.LENGTH_LONG).show();
@@ -332,6 +332,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             if (success) {
                 Toast.makeText(getApplicationContext(), "Login Success", Toast.LENGTH_SHORT).show();
+                HttpMethod.login = true;
                 finish();
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

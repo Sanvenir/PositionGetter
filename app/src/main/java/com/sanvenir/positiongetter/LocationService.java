@@ -13,9 +13,12 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
@@ -31,6 +34,7 @@ public class LocationService extends Service {
     private LocationManager locationManager;
     private String locationProvider;
     private Timer mTimer;
+    private Vibrator vibrator;
 
     private LocationListener locationListener = new LocationListener() {
         @Override
@@ -66,9 +70,11 @@ public class LocationService extends Service {
         Log.d(TAG, "===================>" + location);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void onCreate() {
         super.onCreate();
+        vibrator = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         List<String> providers = locationManager.getProviders(true);
         if(providers.contains(LocationManager.GPS_PROVIDER)) {
@@ -106,6 +112,7 @@ public class LocationService extends Service {
             mTimer = new Timer();
         }
         mTimer.schedule(new TimerTask() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
                 Log.d("Timer Thread", "========================>Running");
@@ -116,7 +123,7 @@ public class LocationService extends Service {
                 }
                 Location location = locationManager.getLastKnownLocation(locationProvider);
                 Log.d("Timer Thread", String.valueOf(location));
-                if(location != null) {
+                if(HttpMethod.login && location != null) {
                     try {
                         Map<String, String> paramMap = new HashMap<>();
                         paramMap.put("method", "upload");
@@ -125,6 +132,18 @@ public class LocationService extends Service {
                         paramMap.put("el", String.valueOf(location.getAltitude()));
                         String response = HttpMethod.postMethod(paramMap);
                         Log.d("Response", response);
+                        String[] userInfo = HttpMethod.getPos();
+                        UserData.setAllUserData(userInfo);
+                        for(String alias: UserData.allUserData.keySet()) {
+                            Log.d("User Info: ", UserData.allUserData.get(alias).toString());
+                        }
+
+                        if(UserData.getTrackingUser() != null) {
+                            UserData myUser = new UserData(location);
+                            Double distance = UserData.allUserData.get(UserData.getTrackingUser()).getDistance(myUser);
+                            Log.d("Distance: ", distance.toString());
+                            vibrator.vibrate((long)(1.0 / distance));
+                        }
                     } catch(Exception e) {
                         Log.d(TAG, e.toString());
                     }

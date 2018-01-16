@@ -24,6 +24,7 @@ public class HttpMethod {
         CookieHandler.setDefault(cookieManager);
     }
 
+    public static boolean login = false;
     public static boolean getPos = false;
     public static String setGetPos(Boolean getPos) throws IOException {
         HttpMethod.getPos = getPos;
@@ -31,6 +32,26 @@ public class HttpMethod {
         paramMap.put("method", "setgetpos");
         paramMap.put("getpos", getPos.toString());
         return postMethod(paramMap);
+    }
+
+    public static String group = null;
+    public static String setGroup(String group) throws IOException {
+        HttpMethod.group = group;
+        Map<String, String> paramMap = new HashMap<>();
+        paramMap.put("method", "setgroup");
+        paramMap.put("setgroup", group);
+        return postMethod(paramMap);
+    }
+
+    public static String[] getPos() throws IOException {
+        Map<String, String> paramMap = new HashMap<>();
+        paramMap.put("method", "getpos");
+        String response = postMethod(paramMap);
+        if(response.isEmpty() || response.contains("fail")) {
+            return new String[0];
+        } else {
+            return response.split(";");
+        }
     }
 
     public static String bindParams(Map<String, String> paramMap){
@@ -44,6 +65,7 @@ public class HttpMethod {
         }
         return builder.toString();
     }
+
     public static String postMethod(Map<String, String> paramMap) throws IOException {
         String baseURL = "http://104.238.181.152:8080/posget/info";
         URL url = new URL(baseURL + bindParams(paramMap));
@@ -51,6 +73,7 @@ public class HttpMethod {
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
         conn.setDoInput(true);
+        Log.d("Postmethod========>", conn.toString());
 
         int responseCode = conn.getResponseCode();
         BufferedReader in = new BufferedReader(
